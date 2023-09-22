@@ -1,0 +1,342 @@
+---
+title: "12_sok_2008_Nordiske_Modelen"
+subtitle: "Fakultet for biovitenskap, fiskeri og økonomi."
+author: "Kandidatnummer 12, SOK-2008, Høst 2023"
+
+date: last-modified
+date-format: "DD-MM-YYYY"
+
+toc: true
+toc-title: "Innholdsliste"
+
+format: pdf
+echo: false
+warning: false
+---
+
+```{r}
+library(tidyverse)
+library(rjstat)
+library(httr)
+library(jsonlite)
+library(ggplot2)
+library(ggrepel)
+library(gridExtra)
+library(jpeg)
+library(grid)
+```
+
+```{r}
+#import av datasett fra ssb tabel 04544
+
+url <- "https://data.ssb.no/api/v0/no/table/04544/"
+
+query <- '{
+  "query": [
+    {
+      "code": "Kjonn",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "1",
+          "2"
+        ]
+      }
+    },
+    {
+      "code": "Yrkesstatus",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "00"
+        ]
+      }
+    },
+    {
+      "code": "ContentsCode",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "FaktiskArbeidstid"
+        ]
+      }
+    }
+  ],
+  "response": {
+    "format": "json-stat2"
+  }
+}'
+  
+hent_indeks.tmp <- url %>%
+  POST(body = query, encode = "json")
+
+SSB_04544 <-  hent_indeks.tmp %>%
+  content("text") %>%
+  fromJSONstat() %>%
+  as_tibble()
+```
+
+```{r}
+#import data from github
+OECD <- "https://raw.githubusercontent.com/uit-sok-2008-h23/uit-sok-2008-h23.github.io/main/assets/women.csv"
+OECD <- read.csv(OECD, header = TRUE, sep = ";")
+```
+
+```{r}
+
+EUROSTAT <- "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/HLTH_SHA11_HF?format=JSON&lang=en&freq=A&unit=PPS_HAB&icha11_hf=HF1&icha11_hf=HF3&geo=EU27_2020&geo=EU28&geo=EU27_2007&geo=EU15&geo=EA20&geo=EA19&geo=EA18&geo=EA12&geo=BE&geo=BG&geo=CZ&geo=DK&geo=DE&geo=EE&geo=IE&geo=EL&geo=ES&geo=FR&geo=HR&geo=IT&geo=CY&geo=LV&geo=LT&geo=LU&geo=HU&geo=MT&geo=NL&geo=AT&geo=PL&geo=PT&geo=RO&geo=SI&geo=SK&geo=FI&geo=SE&geo=IS&geo=LI&geo=NO&geo=CH&geo=UK&geo=BA&geo=RS&time=2019"
+EUROSTAT <- fromJSONstat(EUROSTAT)
+```
+
+```{r}
+url <- "https://data.ssb.no/api/v0/no/table/07459/"
+
+query <- '{
+  "query": [
+    {
+      "code": "Region",
+      "selection": {
+        "filter": "vs:Landet",
+        "values": [
+          "0"
+        ]
+      }
+    },
+    {
+      "code": "Kjonn",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "1",
+          "2"
+        ]
+      }
+    },
+    {
+      "code": "Alder",
+      "selection": {
+        "filter": "agg:FemAarigGruppering",
+        "values": [
+          "F00-04",
+          "F05-09",
+          "F10-14",
+          "F15-19",
+          "F20-24",
+          "F25-29",
+          "F30-34",
+          "F35-39",
+          "F40-44",
+          "F45-49",
+          "F50-54",
+          "F55-59",
+          "F60-64",
+          "F65-69",
+          "F70-74",
+          "F75-79",
+          "F80-84",
+          "F85-89",
+          "F90-94",
+          "F95-99",
+          "F100G5+"
+        ]
+      }
+    },
+    {
+      "code": "Tid",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "2003",
+          "2023"
+        ]
+      }
+    }
+  ],
+  "response": {
+    "format": "json-stat2"
+  }
+}'
+
+hent_indeks.tmp <- url %>%
+  POST(body = query, encode = "json")
+
+SSB_07459 <-  hent_indeks.tmp %>%
+  content("text") %>%
+  fromJSONstat() %>%
+  as_tibble()
+```
+
+## Utfordring 1.1
+
+### 1.1.1 Statistisk Sentral Byrå (SSB) har [data](https://data.ssb.no/api/v0/no/table/04544/) (tabell 04544) som viser gjennomsnittlig antall arbeidstimer blant menn og kvinner i Norge. Bruk disse dataene for å vise empiriske kjønnsforskjeller i valg av arbeidstimer for menn og kvinner. Forklar dine empiriske observasjoner ved bruk av økonomisk teori. Din forklaring skal inneholde grafisk illustrasjon av teorien. NB: i denne oppgaven skal du fokusere på forskjeller mellom menn og kvinner.
+
+##### 
+
+```{r, fig.width=10, fig.height=5}
+SSB_04544 %>% 
+  ggplot(aes(x=år, y = value, color=kjønn))+
+  geom_point()+
+  #title
+    labs(title = "Gjennomsnittlig antall arbeidstimer blant menn og kvinner i Norge",
+         caption = "Kilde: SSB")+
+    #axis
+    xlab("År")+
+    ylab("Antall arbeidstimer")+
+    #angle x axis
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+    scale_y_continuous(breaks = seq(0, 45, by = 1))
+  
+```
+
+Grafen viser gjennomsnittlig antall arbeidstimer for menn og kvinner i Norge fra 1995 til 2019. X-aksen representerer årene fra 1995 til 2019, mens Y-aksen representerer det gjennomsnittlige antallet arbeidstimer. Grafen har to linjer, en for menn og en for kvinner. Grafen viser at det gjennomsnittlige antallet arbeidstimer for menn har vært jevnt høyere enn for kvinner gjennom årene. Menn har gått ned ca 4 timer i ukentlig gjennomsnitt fra 1996 til 2022, mens damer har økt ca 1 time i samme tidsperiode. Dataene kommer fra SSB (Statistisk sentralbyrå)
+
+```{r, fig.width=10, fig.height=5}
+#for å kjøre kode uten bilder må denne kommenteres ut eller fjernes
+
+jj <- readJPEG("bilde_3.jpg",native=TRUE)
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)
+rasterImage(jj,0,0,1,1)
+```
+
+For å forstå valget mellom fulltids- og deltidsarbeid, kan vi benytte en modell. I denne modellen har arbeidstakere tre alternativer: arbeide fulltid, arbeide deltid, eller stå utenfor arbeidslivet. I punkt E på figuren står personer som vurderer mellom fulltid og deltid. Her har individet mest nytte av en beskjeden inntekt kombinert med rikelig fritid. For at noen skal foretrekke deltidsarbeid, må reservasjonslønnen overgå det de ville akseptert for fulltidsarbeid. Dette vil flytte dem til en høyere nyttekurve, representert ved punkt B. Kvinner som nylig har fått barn kan finne det mer attraktivt med deltidsarbeid, da det balanserer behovet for inntekt med ønsket om mer fritid istedenfor å måtte velge en fulltidsjobb som er representert i punkt A.
+
+### 1.1.2 Dette datasettet inneholder informasjon om generøsiteten av foreldrepermisjonsordninger og mødres yrkesdeltakelse i 24 OECD land i 2021.For å gjøre ulike lands rettigheter sammenlignbare presenteres permisjonsordningenes gunstighet ved hjelp av «full rate equivalent» (tot_full_rate = uker med 100% støtte), hvilket tilsvarer foreldrepermisjonens varighet i uker multiplisert med utbetalingssats i prosent av gjennomsnittlig inntekt.Bruk datasettet til å lage to diagrammer som viser sammenhengen mellom lengde på betalt foreldrepermisjon og yrkesdeltakelse blant kvinner. I det ene diagrammet skal du bruke data som beskriver sysselsetting blant kvinner med barn i alderen 0-2 år (fem_emp_rate_0_2), og det andre skal du bruke data på kvinner med barn i alderen 6-14 år (fem_emp_rate_6_14).Diskuter, basert på disse diagrammene og økonomisk teori, følgende påstand: «Gunstige permisjonsordninger ved fødsel sikrer høy yrkesdeltakelse blant kvinner på lang sikt».
+
+##### 
+
+#### 
+
+```{r}
+OECD_plot_1 <- OECD %>% 
+  ggplot(aes(y = fem_emp_rate_0_2, x = tot_full_rate, label = country))+
+  geom_point()+
+  geom_text_repel(aes(label = country), size = 3, nudge_x = 0.1, nudge_y = 0.1)+
+  ylab("Sysselsettingsrat for damer med barn mellom 0-2år")+
+  xlab("Lengde på foreldrepermisjon i uker")+
+  
+  ylim(0,100)
+
+OECD_plot_2 <- OECD %>% 
+  ggplot(aes(y = fem_emp_rate_6_14, x = tot_full_rate, label = country))+
+  geom_point()+
+  geom_text_repel(aes(label = country), size = 3, nudge_x = 0.1, nudge_y = 0.1)+
+  ylab("Sysselsettingsrate for damer med barn mellom 6-14år")+
+  xlab("Lengde på foreldrepermisjon i uker")+
+  
+  ylim(0,100)
+```
+
+```{r, fig.width=10, fig.height=5}
+
+OECD_plot_1
+```
+
+Grafen illustrerer sysselsettingsraten blant kvinner med barn i alderen 0 til 2 år. På Y-aksen representeres sysselsettingsraten i prosent, mens X-aksen viser antall uker med fulltidsekvivalente foreldrepermisjoner. Ut fra grafen observerer vi at flertallet av landene har en sysselsettingsrate over 50%. Noen få unntak eksisterer, spesielt i land som tilbyr mange uker med foreldrepermisjon; disse har en markant lavere sysselsettingsrate.
+
+```{r, fig.width=10, fig.height=5}
+
+OECD_plot_2
+```
+
+Grafen fremstiller sysselsettingsraten for kvinner med barn mellom 6 og 14 år. På Y-aksen er sysselsettingsraten gitt i prosent, mens X-aksen viser antall uker med fulltidsekvivalent foreldrepermisjon. Grafen viser at samtlige land tilbyr mer enn 50% fulltidsekvivalent foreldrepermisjon.
+
+Når vi sammenligner dataene, ser vi en økning i sysselsettingsraten etterhvert som barna blir eldre. Det er bemerkelsesverdig at selv i de landene med lengst foreldrepermisjon, vender kvinner tilbake til arbeid med høye sysselsettingsrater. Data for begge plots kommer fra: [Github lenke](https://github.com/uit-sok-2008-h23/uit-sok-2008-h23.github.io/blob/main/assets/women.csv)
+
+Gunstige permisjonsordninger etter fødsel hjelper kvinner å fortsette i jobben. De hindrer lange pauser i karrieren fordi kvinner vet at jobben venter når permisjonen er over. Disse ordningene gir også økonomisk støtte, noe som gjør det lettere for kvinner å komme tilbake til jobb etter babyen er født. Dette betyr at de kan fokusere på barnet og fortsatt ha en inntekt.
+
+Når både kvinner og menn får betalt permisjon, deles omsorgen for barnet mer likt. Mange land trenger at alle jobber, både kvinner og menn. Så, ved å støtte kvinner med gode permisjonsordninger, sikrer vi at de fortsetter å være en viktig del av arbeidsstyrken.
+
+### 1.1.3 Forklar hvorfor høy yrkesdeltakelse blant norske kvinner og høye barnetall er viktig for at den norske velferdsmodellen skal være økonomisk bærekraftig.
+
+##### 
+
+```{r, fig.width=10, fig.height=5}
+#for å kjøre kode uten bilder må denne kommenteres ut eller fjernes
+
+jj <- readJPEG("antall_barn.jpg",native=TRUE)
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)
+rasterImage(jj,0,0,1,1)
+
+#kode hentet fra: https://stackoverflow.com/questions/23861000/displaying-images-in-r-in-version-3-1-0
+```
+
+Høy yrkesdeltakelse blant kvinner er av avgjørende betydning for den økonomiske bærekraften til den norske velferdsmodellen. Når kvinner deltar i arbeidslivet, bidrar de direkte til statskassen gjennom inntektsskatt. En familie med to inntektstakere vil ofte ha en høyere samlet inntekt, som potensielt fører dem inn i en høyere skatteklasse, resulterende i større skatteinntekter for staten.
+
+For å fremme kvinners deltakelse i arbeidslivet etter fødsel, kan staten tilby barnehagesubsidier. I den illustrerte figuren representerer punkt A en kvinnes optimale valg uten subsidiering. Ved introduksjon av barnehagesubsidier i punkt B, får kvinnen økt fritid og oppnår en høyere nyttekurve. Vi antar i figuren at fritid er all tid som ikke brukes på barnepass.
+
+Videre bidrar arbeidende kvinner indirekte til økonomien gjennom forbruk. Med økte inntekter kommer også ofte et høyere forbruk. Dette fører til økte inntekter fra forbruksskatter, som merverdiavgift. Dette økte forbruket stimulerer ikke bare økonomien direkte, men det gir også vekst til bedrifter, som igjen kan skape flere jobber og økte skatteinntekter.
+
+## Utfordring 1.2
+
+### 1.2.1 I en tid med økende helsetjenestekostnader og begrensede offentlige budsjetter vurderer mange europeiske land økte egenandeler som et verktøy for å påvirke etterspørselen etter helsetjenester og redusere atferdsrisiko. Sammenligning av nivåene av brukerbetaling (egenandel) for ulike helsetjenester mellom land kan gi innsikt i hvordan brukerbetaling påvirker forbruket av helse-tjenester. Bruk datasettet hlth_sha11_hf fra Eurostat for år 2019 i din besvarelse. Lag et punktdiagram som viser sammenhengen mellom andelen av egenbetalinger (Household out-of-pocket payment, på x-aksen) og helsetjenesteforbruk pr. innbygger (Purchasing power standard (PPS) per inhabitant, på y-aksen) i europeiske land. Forklar sammenhengen mellom variablene du ser i figuren og gjør også rede for om det er korrelasjon mellom variablene i dette datasettet.
+
+##### 
+
+```{r, fig.width=10, fig.height=5}
+EUROSTAT_test <- EUROSTAT %>%
+  rename(class = `Classification of health care financing schemes - SHA 2011`) %>% 
+  rename(country = `Geopolitical entity (reporting)`) %>% 
+  mutate(Time = as.numeric(Time))
+  
+EUROSTAT_test <- EUROSTAT_test %>% 
+  pivot_wider(names_from = class, values_from = value) %>% 
+  rename(Goverment = `Government schemes and compulsory contributory health care financing schemes`) %>% 
+  rename(Household = `Household out-of-pocket payment`) %>% 
+  
+  mutate(prosent = (Household/Goverment)*100)
+
+lm(Goverment ~ Household, EUROSTAT_test)
+
+EUROSTAT_test %>% 
+  ggplot(aes(x = prosent, y = Goverment, label = country)) +
+  geom_point()+
+  geom_smooth(method = "lm", se=FALSE)+
+  labs(title = "Egenbetalinger og helsetjenesteforbruk pr. innbygger i europeiske land",
+       caption = "Kilde: Eurostat")+
+  xlab("Egenandelen av helsetjenesteforbruk i prosent")+
+  ylab("Helsetjenesteforbruk pr. innbygger")+
+  geom_text_repel(aes(label = country), size = 3, nudge_x = 0.1, nudge_y = 0.1)
+```
+
+Grafen viser på Y-aksen hvor mye helsetjenester land i Europa bruker per innbygger og på X-aksen hvor stor andel i prosent som er egenandel. Det er tegnet regresjonslinje mellom punktene for å vise korrelasjonen mellom lav egenandel og høy bruk av helsetjenester. Det kommer tydelig fram at land som har høyere bruk av helsetjenester har ofte lavere egenandeler. Data er hentet fra Eurostat.
+
+### 1.2.2 Forklar hvordan økt egenbetaling påvirker helsetjenesteforbruk og øker effektiviteten ved å bruke økonomisk teori om atferdsrisiko du har lært på kursets forelesninger og videoforelesninger. Bruk diagram(mer) i din besvarelse. Diskuter fordelingseffekter av økte egenandeler.
+
+##### 
+
+```{r, fig.width=10, fig.height=5}
+
+#for å kjøre kode uten bilder må denne kommenteres ut eller fjernes
+jj <- readJPEG("bilde_2.jpg",native=TRUE)
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)
+rasterImage(jj,0,0,1,1)
+
+#kode hentet fra: https://stackoverflow.com/questions/23861000/displaying-images-in-r-in-version-3-1-0
+
+```
+
+I $p_0$ er det det vi kaller for ett fritt marked. I dette punktet betaler man for behandlingen selv og det er ingen dødvektstap i dette markedet. Når helsetjenester er subsidiert, kan folk ha en tendens til å konsumere mer helsetjenester enn hva som ville vært tilfelle i et fritt marked. Dette kan legge unødig belastning på helsetjenestesystemet og resultere i lengre ventetider, mangel på tilgjengelighet for de som virkelig trenger tjenesten, og generell ineffektivitet.
+
+Dødvektstap oppstår som et resultat av subsidier. I helsetjenestens kontekst kan dødvektstapet beskrives som en ineffektivitet som oppstår når helsetjenester tilbys til en pris som er lavere enn den marginale kostnaden for å levere den tjenesten. Hvis man ser på punkt $M_1$ hvor etterspørselen er 100% subsidiert får vi ett stort dødvektstap.
+
+Ved å introdusere eller øke egenbetaling som vi kan se i punkt $.15P_0$, gir vi pasientene et økonomisk incentiv til å vurdere nødvendigheten av hvert legebesøk. Dette fører til en mer bevisst beslutning om å oppsøke helsetjenester basert på faktisk behov, og ikke bare fordi det er billig eller gratis. Som et resultat reduseres overforbruket, og ressursene i helsetjenesten kan omfordeles mer effektivt. Dødvektstapet reduseres fra $M_1\ til\ M_2$
+
+Dessuten kan økte egenbetalinger oppmuntre folk til å søke etter helsetjenester av høyere kvalitet. Hvis man skal betale mer selv, ønsker man gjerne at tjenesten skal være verdt pengene.
+
+### Appendix
+
+KI- er brukt under besvarelse av oppgaven.
+
+ChatGPT-4 er brukt for å skrive om tekst for å forbedre språk i oppgaven samt støtte for å skrive kode.
+
+All tekst hentet fra KI er skrevet om og tilpasset oppgaven.
+
+Link til chat: [ChatGPT-chat-history](https://chat.openai.com/share/038449d3-5644-4ddc-a465-ba80bace5c72)
+
+### Kilder:
+
+-   Barr. Kapittel 3, 9-11
+
+-   Boeri og van Ours. Kapittel 5 og 7
+
+-   Kode hentet fra: [stackoverflow](https://stackoverflow.com/questions/23861000/displaying-images-in-r-in-version-3-1-0) for å åpne bilder i R
