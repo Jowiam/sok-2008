@@ -1,0 +1,201 @@
+---
+title: "Utfordring 2 sok 2008 Nordiske Modelen"
+subtitle: "Fakultet for biovitenskap, fiskeri og økonomi."
+author: "Kandidatnummer 12, SOK-2008, Høst 2023"
+
+date: last-modified
+date-format: "DD-MM-YYYY"
+
+toc: true
+toc-title: "Innholdsliste"
+
+format: pdf
+echo: false
+warning: false
+---
+
+```{r}
+library(tidyverse)
+library(rjstat)
+library(httr)
+library(jsonlite)
+library(OECD)
+library(eurostat)
+library(ggrepel)
+library(gridExtra)
+#library(countrycode)
+```
+
+## **Utfordring 2.1.1 - Minstelønn**
+
+1.  Bruk økonomisk teori og grafisk analyse til å gi intuisjon til begge disse påstandene:
+
+    #### «Minstelønninger fører til **økt** fattigdom».
+
+Når vi analyserer påstanden "Minstelønninger fører til økt fattigdom," kan vi vurdere effekten av å innføre en minstelønn ved å sammenligne en markedsmodell: et "perfekt" marked med fullkommen konkurranse for så legge til minstelønn i markedet.
+
+I modellen til venstre, som representerer et perfekt marked, har vi lønn på y-aksen og arbeidsstyrken på x-aksen. Her møtes etterspørselen etter arbeidskraft, $L^d$, og tilbudet av arbeidskraft, $L^s$, på et balansepunkt. Dette markedet har ingen dødvektstap, da det ikke finnes noen form for lønnsintervensjon.
+
+![](figur_3.png)
+
+I modellen til høyre har vi innført en minstelønn, $W^{min}$, som ligger over balansepunktet i det perfekte markedet. Dette fører til et skifte fra $L^{FK}$ til $L^{min}$. Resultatet er at færre arbeidstakere blir ansatt, men de som blir ansatt, mottar en høyere lønn. Denne modellen introduserer et dødvektstap (grått område), som representerer det samfunnsøkonomiske tapet ved å innføre minstelønn.
+
+Dette dødvektstapet illustrerer den potensielle negative konsekvensen av minstelønninger: et antall arbeidere som tidligere ville ha hatt jobb, vil nå være arbeidsledige fordi arbeidsgivere ikke kan eller vil tilby jobb til minstelønnsnivået. Således støtter denne modellen argumentet om at minstelønn kan bidra til økt fattigdom og øke ulikhetene mellom folk og redusere sysselsettingen blant dem med lavere kvalifikasjoner.
+
+#### «Minstelønninger fører til **mindre** fattigdom».
+
+For å adressere påstanden om at "Minstelønninger fører til **mindre** fattigdom," kan vi vende oss til monopsonimarkedsmodellen. Dette er et marked hvor det kun er én kjøper (i dette tilfellet, arbeidsgiver)
+
+I denne modellen representerer aksene lønn og arbeidskraft. $MLC$ står for marginalkostnaden per arbeider, mens $L^s$ og $L^D$ representerer henholdsvis tilbudet og etterspørselen etter arbeidskraft. Uten minstelønn vil markedet finne sin likevekt i punktet $L^m$ , hvor lønnen arbeiderne mottar er gitt ved kryssningspunktet $W^m$.
+
+![](figur_7.png)
+
+Ved innføringen av en minstelønn, $W^{min}$, endres dette scenariet. Dette kan betraktes som en ny $MLC$ -linje fordi arbeidsgiveren nå er forpliktet til å betale alle arbeidstakere minst denne lønnen. I motsetning til tidligere, hvor arbeidsgiveren betalte mere lønn for hver ansatt, blir nå minstelønnen standarden for alle nye arbeidstakere. Dette fører til et skifte fra $L^m$ til $L^{min}$, noe som indikerer at arbeidsgivere vil være villige til å ansette flere arbeidere til denne fastsatte lønnsraten.
+
+Likevel fører denne intervensjonen også til et dødvektstap, et tap som bæres av både arbeidstaker og arbeidsgiver. Men med tanke på den opprinnelige påstanden, kan det argumenteres for at innføring av minstelønn potensielt kan redusere fattigdom ved å inkludere flere personer i arbeidsstyrken.
+
+## **Utfordring 2.1.2**
+
+-   Eurostat har data på minstelønninger i prosent av gjennomsnittlig bruttoinntekt (earn_mw_avgr2) og sysselsetting (lfsi_emp_a). Hent ut data for sysselsetting i befolkningen i alderen 20 -64, og minstelønn som andel av gjennomsnittlig inntekt for året 2021. Lag en graf som illustrerer sammenhengen. Dersom du bruker ggplot i Rstudio, kan du bruke kommandoen: «geom_smooth(method=lm, se=FALSE)» til å få fram en korrelasjonslinje.
+
+```{r}
+mw <- get_eurostat("earn_mw_avgr2")
+lfsi <- get_eurostat("lfsi_emp_a")
+
+m_w <- mw %>% 
+  filter(time == "2021-01-01") %>% 
+  filter(indic_se == "MMW_MEAN_ME_PP")
+
+lf_si <- lfsi %>% 
+  filter(time == "2021-01-01") %>% 
+  filter(age == "Y20-64") %>% 
+  filter(unit == "PC_POP")
+
+mw_lf <- merge(m_w, lf_si, by = c("geo","time"))
+```
+
+```{r}
+mw_lf %>% 
+  filter(nace_r2 == "B-N") %>% 
+  filter(indic_em == "EMP_LFS") %>% 
+  filter(sex == "T") %>% 
+  
+  ggplot(aes(y = values.x, x = values.y))+
+  geom_point()+
+  geom_text_repel(aes(label = geo), size = 3, nudge_x = 0.1, nudge_y = 0.1)+
+  geom_smooth(method=lm, se=FALSE)+
+  labs(title = "", x = "Sysselsatte", y = "Minstelønn", caption="Eurostat")+
+  scale_x_continuous(labels = scales::percent_format(scale = 1))+
+  scale_y_continuous(labels = scales::percent_format(scale = 1))
+```
+
+-   Hvilken av påstandene i Utfordring 2.1.1 ser den observerte sammenhengen ut å gi støtte til?
+
+I følge den negative korrelasjonen som oppstår ser det ut som om en høyere minstelønn fører til mindre sysselsettning. Det ut fra modellen fra fullkommet marked kan vi anta at dette stemmer til en viss grad på grunn av omfordelingen og effektivitetstapet som oppstår ved å gripe inn i markedet.
+
+-   Sammenhengen mellom nivået på minstelønn og arbeidsledighetsraten er en korrelasjon. Diskuter årsaker til at vi ikke kan trekke konklusjonen at denne korrelasjonen indikerer et kausalt samband, og beskriv en metode som kan hjelpe til å identifisere kausale effekter.
+
+Bare fordi to variabler er korrelerte, betyr det ikke nødvendigvis at endringer i den ene variabelen forårsaker endringer i den andre. Minstelønningene kan sette opp på forskjellige måter og gi forskjellige effekter i forskjellige land/markeder. I dette tilfelle er det ikke nødvendig vis en kausal effekt.
+
+"Difference in differences" (DiD) er en statistisk teknikk som ofte brukes i økonomisk forskning for å identifisere kausale effekter. DiD sammenligner forskjellen i utfallene før og etter en behandling (f.eks. en policyendring) i en gruppe som mottar behandlingen med forskjellen i utfallene over samme tidsperiode i en kontrollgruppe som ikke mottar behandlingen. Forskjellen mellom disse to "forskjellene" gir estimatet på behandlingseffekten, renset for eventuelle tidstrender som påvirker begge grupper.
+
+## **Utfordring 2.2.1 - Fagforeninger**
+
+1.  Bruk økonomisk teori og grafisk analyse til å gi intuisjon til påstanden
+
+    #### «Sterke fagforeninger reduserer velferden».
+
+![](figur_4.png)
+
+Figuren illustrerer dynamikken mellom lønn og sysselsetting i et marked med og uten fagforeningsinngripen. I et marked med fullkommen konkurranse ville likevektslønnen være $W^*$, og ved denne lønnen ville $L^*$ arbeidstakere være ansatt. Når fagforeningen har markedsmakt bestemmer den en høyere lønn $W_M$, noe som resulterer i en lavere sysselsetting ved $L_M$.
+
+Denne reduksjonen i sysselsetting reflekterer arbeidsledigheten skapt av fagforeningens beslutning om å sette en høyere lønn. Den grå regionen i figuren representerer denne arbeidsledigheten -- en forskjell mellom arbeidsstyrken som ville vært ansatt ved likevektslønnen og den som er ansatt ved fagforeningslønnen.
+
+I denne konteksten kan man argumentere for at sterke fagforeninger kan redusere velferden. Mens de ansatte som er i jobb drar nytte av høyere lønninger, fører den resulterende arbeidsledigheten til redusert velferd for dem som er uten jobb.
+
+## **Utfordring 2.2.2**
+
+OECD har informasjon om organisasjonsgraden i fagforeninger (union density) og arbeidsledighetsraten i ulike land. Datasettet «TUD» i R-pakken oecd inneholder data på organisasjonsgrad (ObsValue = organisasjonsgrad). Datasettet «MIG_NUP_RATES_GENDER» inneholder informasjon om arbeidsledighet i ulike grupper (ObsValue = arbeidsledighetsrate). Bruk data for år 2018, og for begge kjønn (GENDER = TOT). Dersom du bruker ggplot i Rstudio, kan du bruke kommandoen: «geom_smooth(method=lm, se=FALSE)» til å få fram en korrelasjonslinje.
+
+```{r}
+TUD <- get_dataset("TUD")
+MIG <- get_dataset("MIG_NUP_RATES_GENDER")
+```
+
+```{r}
+TUD_df <- TUD %>% 
+  filter(Time == "2018") %>% 
+  rename(COUNTRY = LOCATION) %>% 
+  mutate(ObsValue = as.integer(ObsValue))
+
+MIG_df_FB <- MIG %>% 
+  filter(Time == "2018") %>% 
+  filter(GENDER == "TOT") %>% 
+  filter(RATE == "U_RATE") %>% 
+  filter(BIRTH == "FB") %>% 
+  mutate(ObsValue = as.integer(ObsValue))
+
+MIG_df_NB <- MIG %>% 
+  filter(Time == "2018") %>% 
+  filter(GENDER == "TOT") %>% 
+  filter(RATE == "U_RATE") %>% 
+  filter(BIRTH == "NB") %>% 
+  mutate(ObsValue = as.integer(ObsValue))
+
+MIG_TUD_FB <- merge(MIG_df_FB, TUD_df, by= c("TIME_FORMAT", "Time", "COUNTRY"))
+MIG_TUD_NB <- merge(MIG_df_NB, TUD_df, by= c("TIME_FORMAT", "Time", "COUNTRY"))
+```
+
+```{r}
+plot_1 <- MIG_TUD_FB %>% 
+  ggplot(aes(x = ObsValue.y , y = ObsValue.x)) +
+  geom_point()+
+  geom_text_repel(aes(label = COUNTRY), size = 3, nudge_x = 0.1, nudge_y = 0.1)+
+  geom_smooth(method=lm, se=FALSE)+
+  labs(title = "Utenlandsfødte", x = "Organisasjonsgrad", y = "Arbeidsledighetsrate", caption = "OECD")+
+  scale_x_continuous(labels = scales::percent_format(scale = 1))+
+  scale_y_continuous(labels = scales::percent_format(scale = 1))
+
+```
+
+```{r}
+plot_2 <- MIG_TUD_NB %>% 
+  ggplot(aes(x = ObsValue.y , y = ObsValue.x)) +
+  geom_point()+
+  geom_text_repel(aes(label = COUNTRY), size = 3, nudge_x = 0.1, nudge_y = 0.1)+
+  geom_smooth(method=lm, se=FALSE)+
+  labs(title = "Innenlandsfødte", x = "", y = "", caption= "OECD")+
+  scale_x_continuous(labels = scales::percent_format(scale = 1))+
+  scale_y_continuous(labels = scales::percent_format(scale = 1))
+
+```
+
+```{r, fig.height=5, fig.width=10}
+grid.arrange(plot_1, plot_2, ncol=2)
+```
+
+-   Bruk data for innenlandsfødte (BIRTH = NB) og utenlandsfødte (BIRTH = FB) til å lage to grafer som viser sammenhengen mellom organisasjonsgraden i fagforeninger og nivået på arbeidsledigheten i ulike land for de to gruppene. Diskuter dine empiriske observasjoner ut fra økonomisk teori om forhandling mellom arbeidsmarkedets parter og medlemsbasens sammensetning.
+
+**Utenlandsfødte:** Det ser ut til at det er en svak positiv korrelasjon mellom organisasjonsgrad (andel arbeidstakere som er medlem av en fagforening) og arbeidsledighetsraten for utenlandsfødte.
+
+**Innenlandsfødte:** Det er en svak negativ korrelasjon mellom organisasjonsgrad og arbeidsledighetsraten for innenlandsfødte.
+
+For utenlandsfødt viser dataene en positiv korrelasjon mellom organisasjonsgrad og arbeidsledighet. Dette kan skyldes at i land med sterkere fagforeninger kan det være større barrierer for utenlandsfødte å finne arbeid. Disse barrierene kan komme i form av preferanser for eksisterende, ofte innenlandsfødte medlemmer.
+
+På den annen side, blant innenlandsfødte arbeidstakere, indikerer en svak negativ korrelasjon at sterkere fagforeninger kan beskytte dem mot arbeidsledighet. Dette kan reflektere fagforeningens evne til å fremforhandle jobbsikkerhet og beskyttelse for sine medlemmer, spesielt hvis majoriteten av medlemmene er innenlandsfødte.
+
+Samlet sett antyder disse observasjonene at mens fagforeningene kan gi fordeler for innenlandsfødte arbeidstakere, kan de også utilsiktet skape utfordringer for utenlandsfødte.
+
+### **Appendix**
+
+KI- er brukt under besvarelse av oppgaven.
+
+ChatGPT-4 er brukt for å skrive om tekst for å forbedre språk i oppgaven samt støtte for å skrive kode.
+
+Tekst hentet fra KI er skrevet om og tilpasset oppgaven.
+
+Link til chat: [ChatGPT-4](https://chat.openai.com/share/390acc23-7072-4562-a51e-c6d488a851e7)
+
+### Kilder
+
+Boeri T. & Van Ours J. (2013). *The Economics of Imperfect Labor Markets: Second Edition.* Princeton University Press.
