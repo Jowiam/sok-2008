@@ -188,6 +188,8 @@ Samlet sett antyder disse observasjonene at mens fagforeningene kan gi fordeler 
 
 ### **Appendix**
 
+Lenke til github repo: <https://github.com/Jowiam/sok-2008/tree/88f1e3549517fe65264c63b68daac138ec6db017/utfordring_2>
+
 KI- er brukt under besvarelse av oppgaven.
 
 ChatGPT-4 er brukt for å skrive om tekst for å forbedre språk i oppgaven samt støtte for å skrive kode.
