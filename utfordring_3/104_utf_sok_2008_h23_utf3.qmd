@@ -184,7 +184,7 @@ Det som kommer fram av figuren er at ved stønad så øker reservasjonslønnen t
 
 **Arbeidsmarkedet er sjelden perfekt. Forklar hvilke effekter trygd har på arbeidsmarkedet da arbeidsmarkedet er ufullkomment.**
 
-Norge. (1997). Lov om folketrygd \[Folketrygdloven\]. § 1-1. Hentet fra [https://lovdata.no/lov/1997-02-28-19/§1-1](https://lovdata.no/lov/1997-02-28-19/%C2%A71-1) *Folketrygdens formål er å gi økonomisk trygghet ved å sikre inntekt og kompensere for særlige utgifter ved arbeidsløshet, svangerskap og fødsel, aleneomsorg for barn, sykdom og skade, uførhet, alderdom og dødsfall.*
+Hva er trygd? folketrygda er beskrevet i Lovdata: Norge. (1997). Lov om folketrygd \[Folketrygdloven\]. § 1-1. Hentet fra [https://lovdata.no/lov/1997-02-28-19/§1-1](https://lovdata.no/lov/1997-02-28-19/%C2%A71-1) *Folketrygdens formål er å gi økonomisk trygghet ved å sikre inntekt og kompensere for særlige utgifter ved arbeidsløshet, svangerskap og fødsel, aleneomsorg for barn, sykdom og skade, uførhet, alderdom og dødsfall.*
 
 *Folketrygden skal bidra til utjevning av inntekt og levekår over den enkeltes livsløp og mellom grupper av personer.*
 
@@ -352,9 +352,9 @@ Det introduseres dermed en mulighet for arbeidstakere til å velge redusert arbe
 
 Når kompensasjonsgraden for sykepenger reduseres, kan det medføre at flere personer velger å gå på jobb selv om de er syke, fremfor å ta ut sykepenger. Dette kan potensielt øke antallet mennesker som deltar i arbeidsstyrken. Beslutningstakere må derfor veie de økonomiske fordelene av en høyere arbeidsdeltakelse opp mot de sosiale og helsemessige konsekvensene av at syke personer går på jobb. Det er viktig å finne en balanse som både støtter økonomien og ivaretar befolkningens helse og velvære. Justering av sykepengeordninger krever en grundig vurdering av de samfunnsmessige effektene for å sikre at politikken oppnår de ønskede målene og bidrar positivt til samfunnet.
 
-## **Appendix**
+## Appendix
 
-Lenke til github repo:
+Lenke til github repo: <https://github.com/Jowiam/sok-2008/tree/main/utfordring_3>
 
 KI- er brukt under besvarelse av oppgaven.
 
