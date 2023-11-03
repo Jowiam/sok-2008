@@ -1,0 +1,375 @@
+---
+title: "Utfordring 3 sok 2008 Nordiske Modelen"
+subtitle: "Fakultet for biovitenskap, fiskeri og økonomi."
+author: "Kandidatnummer 104, SOK-2008, Høst 2023"
+
+date: last-modified
+date-format: "DD-MM-YYYY"
+
+toc: true
+toc-title: "Innholdsliste"
+
+format: pdf
+echo: false
+warning: false
+---
+
+```{r}
+library(tidyverse)
+library(rjstat)
+library(httr)
+```
+
+## 3.1.1
+
+For å regne ut reservasjonslønnen kan man løse det på følgende måte:
+
+**Sett inn for c, l og** $\theta$ **= 0.5**
+
+$$
+U(c,l)=100^{0.5}\times60^{0.5}
+$$
+
+**Finn kvadratrøttene** $$100^{0.5} = \sqrt{100} = 10$$ $$60^{0.5} = \sqrt{60} \approx 7.746$$
+
+**Multipliser sammen resultatene**
+
+$$10 \times 7.746 \approx 77.46$$
+
+$$U(c,l) \approx 77.46$$
+
+**Sett inn for c, l og** $\theta$
+
+**Gjenta samme men sett inn 200 for c:**
+
+$$U(c, l) = 200^{0.5} \times 60^{0.5}$$
+
+**Finn kvadratrøttene**
+
+$$60^{0.5} = \sqrt{60} \approx 7.746$$
+
+$$200^{0.5} = \sqrt{200} \approx 14.142$$
+
+**Multipliser sammen resultatene**
+
+$$14.142 \times 7.746 \approx 109.544\\$$ $$U(c, l) \approx 109.544$$
+
+**Regner ut reservasjonslønn for begge senario:**
+
+**For c = 100**
+
+$$\frac{(77.46)^2}{20} \approx \frac{5995.812}{20} = 299.791$$
+
+$$\frac{299.791 - 100}{40} \approx \frac{199.791}{40} \approx 5$$
+
+**For c = 200**
+
+$$\frac{(109.544)^2}{20} \approx \frac{11997.994}{20} = 599.9$$
+
+$$\frac{599.9 - 100}{40} \approx \frac{499.9}{40} \approx 12.5$$
+
+Reservasjonslønnen for Tone uten stønad er 5, med stønad er den 12,5
+
+```{r}
+l_1 <- seq(0, 60, by = .01) 
+
+
+df <- data.frame(l_1)
+
+#lag aksen for tegningen
+
+axes_1 <- ggplot(df, aes(l_1))+
+  labs(x="Fritid (l)", y="Konsum i 10-tall (c)") +
+  theme(axis.title = element_text(size = 10),
+        plot.title = element_text(size = 10),
+        panel.background = element_blank(), # hvit bakgrunn
+        axis.line = element_line(colour = "black"), # sett inn akselinjer
+        axis.title.x = element_text(hjust = 1),
+        axis.title.y = element_text(angle = 0, vjust = 1, hjust=1))+
+  # juster labels på aksene  
+  coord_fixed(ratio = 1)+ # lik skala for x og y aksen
+  scale_x_continuous(limits = c(0, 70), expand = c(0, 0))+
+  scale_y_continuous(limits = c(0, 1000), expand = c(0, 0))+ # begrense aksene
+  coord_fixed(ratio = (70 - 0) / (1000 - 0))
+
+axes_2 <- ggplot(df, aes(l_1))+
+  labs(x="Fritid (l)", y="Konsum i 10-tall (c)") +
+  theme(axis.title = element_text(size = 10),
+        plot.title = element_text(size = 10),
+        panel.background = element_blank(), # hvit bakgrunn
+        axis.line = element_line(colour = "black"), # sett inn akselinjer
+        axis.title.x = element_text(hjust = 1),
+        axis.title.y = element_text(angle = 0, vjust = 1, hjust=1),
+        axis.ticks = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank())+
+        # juster labels på aksene  
+  coord_fixed(ratio = 1)+ # lik skala for x og y aksen
+  scale_x_continuous(limits = c(0, 70), expand = c(0, 0))+
+  scale_y_continuous(limits = c(0, 1000), expand = c(0, 0))+ # begrense aksene
+  coord_fixed(ratio = (70 - 0) / (1000 - 0))
+```
+
+```{r}
+u0 = (100^0.5)*(60^0.5)
+u1 = (200^0.5)*(60^0.5)
+
+u2 = (u0^2)/(20)
+u3 = (u1^2)/(20)
+
+u4 = (u2-100)/40
+u5 = (u3-100)/40
+u4
+u5
+```
+
+```{r}
+I_0 <- function(l_1) (u0^2)/(l_1)  # bytt ut U0 mot et relevant nivå på nytten
+I_1 <- function(l_1) (u1^2)/(l_1) # bytt ut U1 mot et relevant nivå på nytten
+```
+
+```{r}
+
+# Reservasjonslønn uten stønad
+wr0 <- function(l_1){
+  return(100 + u4 *(60-l_1)) #sett inn tall for skjærningspunkt med Y-akselen og koeffisienten til l_1
+}
+# Reservasjonslønn med stønad
+wr1 <- function(l_1) {
+  return(100 + u5 *(60-l_1)) #sett inn tall for skjærningspunkt med Y-akselen og koeffisienten til l_1
+}
+```
+
+```{r}
+figur_2 <- axes_1+
+  stat_function(fun = I_0, aes()) +
+  stat_function(fun = I_1, aes()) +
+  annotate("text", x = 7, y = 950, label = "u0", color = "black", hjust = 0) +
+  annotate("text", x = 15, y = 950, label = "u1", color = "black", hjust = 0) +
+  
+  geom_segment(aes(x = 0, y = wr0(0), xend = 60, yend = wr0(60)), color="darkblue") + #Kurve som beskriver reservasjonslønn da stønad == 0
+  annotate("text", x = 17, y = 600, label = "D")+
+ 
+  
+  geom_segment(aes(x = 0, y = wr1(0), xend = 60, yend = wr1(60)), color="cornflowerblue") + #Kurve som beskriver reservasjonslønn da stønad == 100
+  annotate("text", x = 22, y = 330, label = "C")+
+  
+  geom_segment(aes(x=60, y=200, xend=60, yend=0), linetype = "dashed")+ #Sett inn tall som beskriver budsjettbetingelsen ved l0 = 60 (vertikal linje)
+  
+  geom_segment(aes(x=0, y=200, xend=60, yend=200), linetype="dashed", color = "green")+ #Sett inn tall som beskriver arbeidsfri inntekt
+  
+  geom_segment(aes(x=0, y=wr1(60), xend=60, yend=wr1(60)), linetype="dashed", color="red")+ #Identifiser heltidsarbeid. (sett inn tall)
+  
+  annotate("text", x = 30, y = 185, label = "Arbeidsfri inntekt + stønad", hjust = 0.5, color = "green") +
+  
+  annotate("text", x = 30, y = wr1(60) - 20, label = "Arbeidsfri inntekt", hjust = 0.5, color = "red") +
+  
+  annotate("text", x = 62, y = 250, label = "B")+
+  annotate("text", x = 62, y = 80, label = "A")+
+  
+  geom_segment(aes(x=20, y=1000, xend=20, yend=0), linetype = "dashed")
+
+figur_2
+```
+
+I figuren illustreres ett 'perfekt' marked med Tones valg mellom fritid og konsum gjennom to ulike scenarier: et uten stønad og et med stønad. På x-aksen representeres fritid, mens konsum er representert på y-aksen. Tones preferanser er avbildet ved hjelp av indifferansekurver, og hennes valg bestemmes ved krysningspunktet mellom disse kurvene og hennes reservasjonslønn, Tone må jobbe minimum 40 timer.
+
+I det første scenariet, uten tilgang til stønad, har Tone en reservasjonslønn på 5. Med en arbeidsfri inntekt på 100, må hun jobbe minimum 40 timer i uken. På figuren finner vi hennes optimale tilpasning i punkt A, hvor indifferansekurven tangerer linjen for reservasjonslønnen. Dette indikerer at Tone er indifferent mellom å jobbe og å ha fritid, gitt at hun ikke mottar stønad.
+
+I det andre scenariet, med tilgang til stønad, øker Tones reservasjonslønn til 12,5. Dette fører til en høyere indifferansekurve (punkt B) og en økning i hennes nytte. Tone blir nå å tilpasse seg i punkt D for å få lik nytte av å jobbe og ikke jobbe som er grunnen til den økte reservasjonslønnen.
+
+Det som kommer fram av figuren er at ved stønad så øker reservasjonslønnen til Tone fordi hun ikke vil tilpasse seg på ett lavere nyttenivå enn hennes arbeidsfrie inntekt med stønad.
+
+## 3.1.2
+
+**Arbeidsmarkedet er sjelden perfekt. Forklar hvilke effekter trygd har på arbeidsmarkedet da arbeidsmarkedet er ufullkomment.**
+
+Norge. (1997). Lov om folketrygd \[Folketrygdloven\]. § 1-1. Hentet fra [https://lovdata.no/lov/1997-02-28-19/§1-1](https://lovdata.no/lov/1997-02-28-19/%C2%A71-1) *Folketrygdens formål er å gi økonomisk trygghet ved å sikre inntekt og kompensere for særlige utgifter ved arbeidsløshet, svangerskap og fødsel, aleneomsorg for barn, sykdom og skade, uførhet, alderdom og dødsfall.*
+
+*Folketrygden skal bidra til utjevning av inntekt og levekår over den enkeltes livsløp og mellom grupper av personer.*
+
+*Folketrygden skal bidra til hjelp til selvhjelp med sikte på at den enkelte skal kunne forsørge seg selv og klare seg selv best mulig til daglig.*
+
+I ett perfekt marked har alle som vil være i arbeid jobb, men når arbeidsmarkedet ikke er perfekt er det det ofte gnisninger rundt markedskrysset fordi folk bytter jobber. Trygd er et virkemiddel som er til for å gjøre det letter for folk som for en eller annen grunn har endret sin arbeidsituasjon. Grunnet det dynamiske arbeidsmarkedet oppstår det en del effekter.
+
+Jobbsøkeffekt: Arbeidsledighetstrygd kan føre til at arbeidstakere blir mer selektive når de vurderer jobbtilbud. De kan tillate seg å bruke mer tid på jobbsøking for å finne en bedre match, noe som kan forlenge periodene med arbeidsledighet.
+
+Lønnseffekt: Arbeidsledighetstrygd gir en økonomisk buffer for arbeidstakere, noe som gir dem større forhandlingsmakt i lønnsforhandlinger. Dette kan føre til høyere lønninger, men kan også øke kostnadene for arbeidsgivere og potensielt redusere antall jobber.
+
+Rettighetseffekt: Trygdeordninger kan gjøre det mer attraktivt å delta i arbeidsmarkedet, selv for de som ikke mottar direkte støtte. Verdien av å være i arbeid eller aktivt søke arbeid øker relativt til å være inaktiv.
+
+## 3.2.1
+
+**Studer teksten i sangen *Tredagern* av Gatas parlament. Bruk data fra denne [tabellen](https://www.ssb.no/statbank/table/12441/) for å vise hvordan egenmeldinger i næringen som sangpersonen jobber i (la oss si industri) har utviklet siden sangen ble utgitt. Lag en figur og diskuter dine funn.**
+
+```{r}
+url <- "https://data.ssb.no/api/v0/no/table/12441/"
+
+query <- '{
+  "query": [
+    {
+      "code": "Kjonn",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "1",
+          "2"
+        ]
+      }
+    },
+    {
+      "code": "NACE2007",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "10-33"
+        ]
+      }
+    },
+    {
+      "code": "Sykefraver2",
+      "selection": {
+        "filter": "item",
+        "values": [
+          "E",
+          "L"
+        ]
+      }
+    }
+  ],
+  "response": {
+    "format": "json-stat2"
+  }
+}'
+
+hent_indeks.tmp <- url %>%
+  POST(body = query, encode = "json")
+
+df_egen <-  hent_indeks.tmp %>%
+  content("text") %>%
+  fromJSONstat() %>%
+  as_tibble()
+
+df_egen <- df_egen %>% 
+  mutate(år = as.integer(år))
+```
+
+```{r}
+df_egen %>% 
+  filter(`type sykefravær` == "Egenmeldt") %>% 
+  ggplot(aes(y = value, x = år, color = kjønn))+
+  geom_line()+
+  labs(title = "Egenmeldinger i Norge", caption = "kilde: ssb", x = "År", y = "Egenmelding i prosent", color = "Kjønn" )+
+  scale_x_continuous(breaks = seq(2000, 2020, by = 2))
+```
+
+Figuren presenterer egenmeldingsdager for lønnstakere i industriyrket i Norge i prosent, delt opp på kvinner og menn, fra år 2000 til 2020. Dataene viser en økende trend i antall egenmeldingsdager for begge kjønn over perioden. Det er også tydelig at kvinner rapporterer et høyere antall egenmeldingsdager enn menn hvert år i den observerte tidsperioden.
+
+Hva er egenmeldig? Fra §1, Lovdata. (1978, Januar 11). Forskrift om arbeid i arbeidstakers og arbeidsgivers hus, hjemmearbeidsforskriften. *Med egenmelding menes her at en arbeidstaker melder fra til arbeidsgiveren om at han/hun må være borte fra arbeidet på grunn av sykdom, og får rett til sykepenger på grunnlag av denne meldingen uten å legge fram legeerklæring om at fraværet skyldes sykdom.*
+
+I sangen *Tredagern* av Gatas parlament kan temaet i sangen kan være ønsket om frihet og å nyte de små gledene i livet, spesielt i sommervarmen. Budskapet kan tolkes som en oppfordring til å ta seg tid til å slappe av, nyte livet, og ikke alltid føle presset fra arbeid og andre forpliktelser. Det er også et element av samfunnskritikk i sangen, spesielt i forhold til arbeidslivet og samfunnets forventninger. Sangeren velger å ignorere arbeidsforpliktelsene for å nyte dagen ved å benytte seg av egenmelding, han velger å utnytte systemet med egenmeldigner noe som kan tolkes som en kritikk av arbeidssamfunnet og et ønske om å bryte fri fra dets krav.
+
+Dataen som er vist i plottet er ikke månedlige data og tar derfor ikke for seg sesong endringer eller trender som gir utslag slik som kan tolkes ut fra sangen i forhold til å ta egenmeldingsdager på en varm sommer. Det kan derfor ikke konkludere fra denne grafen om egenmeldinger blir misbrukt for å nyte sommeren.
+
+## 3.2.2
+
+**Beskriv disinsentivproblemet knyttet til sangen ved hjelp av økonomisk teori du har lært på dette kurset. Bruk diagram i din besvarelse. Gjør rede for antakelsene i modellen. Husk å forklare økonomisk intuisjon.**
+
+```{r}
+
+I_3 <- function(l_1) (170^2)/(l_1) 
+I_4 <- function(l_1) (110^2)/(l_1) 
+I_2 <- function(l_1) (125^2)/(l_1)
+
+figur_3 <- axes_2+
+ # stat_function(df,
+ #               fun=I_2,
+ #               mapping = aes() 
+ # )+
+ 
+  stat_function(df,
+                fun=I_3,
+                mapping = aes() 
+  )+
+ # annotate("text",
+ #          x=7.5, 
+ #          y=982.5, 
+ #          label=expression(I[0]))+ 
+  annotate("text",
+           x=35, 
+           y=982.5, 
+           label=expression(I[2]))+
+  geom_segment(aes(x = 0, y = 700, xend = 60, yend = 100 ),color="darkblue") +
+  
+  geom_segment(aes(x=60, y=0, xend=60, yend=480))+ 
+  
+  
+  geom_segment(aes(x=0, y=100, xend=60, yend=100), linetype="dashed")+ 
+  annotate("text", x = 2, y = 65, label = "m")+
+  
+  geom_segment(aes(x=22, y=0, xend=22, yend=480), linetype="dashed", color="red")+
+  
+  geom_segment(aes(x=22, y=480, xend=60, yend=480), color = "blue")+
+  
+  annotate("text", x = 45, y = 500, label = expression("-(w-1w)"))+
+  annotate("text", x = 50, y = 150, label = expression(-w[ht]^{r}))+
+  annotate("text", x = 61, y = 530, label = expression("A"))
+
+figur_3
+```
+
+For å analysere disinsentivproblemet relatert til egenmeldingsordningen i kontekst av sangen "Tredagern", kan vi anvende en økonomisk modell i et perfekt marked. Modellen visualiserer forholdet mellom konsum og fritid, med en grunnleggende inntekt uten arbeid. Her representeres arbeiderens budsjettlinje ved $-W^{r}_{ht}$.
+
+I denne situasjonen opererer vi under en støtteordning som tilbyr 100% lønnskompensasjon for fravær fra arbeid. Dette fører til at arbeideren alltid blir å tilpasse seg punkt A på indifferansekurven, der han eller hun oppnår full lønnskompensasjon ved $-(w-1w)$, og samtidig maksimerer fritiden. Denne preferansen for fritid over arbeid reflekteres i sangen "Tredagern", der hovedbudskapet er ønsket om å ta seg fri fra jobb og nyte solskinnet, uten å miste økonomisk inntekt. Ett av problemene ved denne modellen er at arbeidstaker alltid vil velge å være borte fra jobben, selv om han/hun bare er litt syk.
+
+## 3.2.3
+
+**Hvilket virkemiddel ville du som samfunnsøkonom foreslått for å redusere disinsentiveffekten i sangen? Bruk økonomisk teori du har lært på dette kurset til å svare på dette spørsmålet. Bruk diagram i din besvarelse. Husk å forklare økonomisk intuisjon.**
+
+```{r}
+I_2 <- function(l_1) (125^2)/(l_1)
+
+figur_4 <- figur_3 +
+   stat_function(df,
+                fun=I_2,
+                mapping = aes() 
+  )+
+    annotate("text",
+           x=21, 
+           y=982.5, 
+           label=expression(I[1]))+
+  geom_segment(x = 22, y = 480, xend = 60, yend =250, color = "red")+
+  annotate("text", x = 53, y = 350, label = expression("-w-0.6w"))
+  
+figur_4
+```
+
+I modellen omtalt i oppgave 3.2.1, møter vi en utfordring knyttet til høye kompensasjonsgrader for arbeidstakere som er fraværende fra jobb. Slik den er nå, tilbyr ordningen en kompensasjonsgrad som kan skape uønskede disinsentiver, ettersom den tilrettelegger for at arbeidstakere kan velge fullt fravær uten økonomisk tap, noe som ikke er samfunnsøkonomisk optimalt.
+
+En potensiell løsning for å dempe disinsentivproblemet, foreslått i oppgaven, er å redusere stønaden til en kompensasjon på 60% av lønnen (representert ved $-w-0.6w$). I den oppdaterte modellen, hvor arbeiderens alternativ til fullt fravær er å jobbe redusert, blir det illustrert at arbeidstakere kan finne det mer attraktivt å velge redusert arbeid framfor fullt fravær. Grunnen til dette er at nytten ved å jobbe deltid er høyere sammenlignet med å motta en lavere kompensasjon for å være hjemme.
+
+Det introduseres dermed en mulighet for arbeidstakere til å velge redusert arbeid fremfor å være helt borte fra jobben. Dette er fordi nyttenivået for å være hjemme ikke vil være like høyt som ved delvis arbeidsinnsats. En slik tilnærming fremmer en mer balansert samfunnsøkonomisk fordeling av arbeid og fritid, og oppmuntrer til en større arbeidsdeltakelse, noe som potensielt kan bidra til en mer produktiv arbeidsstyrke.
+
+Når kompensasjonsgraden for sykepenger reduseres, kan det medføre at flere personer velger å gå på jobb selv om de er syke, fremfor å ta ut sykepenger. Dette kan potensielt øke antallet mennesker som deltar i arbeidsstyrken. Beslutningstakere må derfor veie de økonomiske fordelene av en høyere arbeidsdeltakelse opp mot de sosiale og helsemessige konsekvensene av at syke personer går på jobb. Det er viktig å finne en balanse som både støtter økonomien og ivaretar befolkningens helse og velvære. Justering av sykepengeordninger krever en grundig vurdering av de samfunnsmessige effektene for å sikre at politikken oppnår de ønskede målene og bidrar positivt til samfunnet.
+
+## **Appendix**
+
+Lenke til github repo:
+
+KI- er brukt under besvarelse av oppgaven.
+
+ChatGPT-4 er brukt for å skrive om tekst for å forbedre språk i oppgaven samt støtte for å skrive kode, også brukt til skriving av kildehenvisning.
+
+Tekst hentet fra KI er skrevet om og tilpasset oppgaven.
+
+Link til chat: [ChatGpt-4](https://chat.openai.com/share/25b34d51-ebc5-4749-a048-a37e0d2da8dc)
+
+## Kilder
+
+Boeri T. & Van Ours J. (2013). *The Economics of Imperfect Labor Markets: Second Edition.* Princeton University Press.
+
+<https://uit-sok-2008-h23.github.io/assets/F4.3_Arbeidsledighetstrygd_2023.pdf>
+
+Lovdata. (1978, Januar 11). Forskrift om arbeid i arbeidstakers og arbeidsgivers hus, hjemmearbeidsforskriften. <https://lovdata.no/dokument/SFO/forskrift/1978-01-11-2>
+
+Lov om folketrygd (folketrygdloven). (1997). hentet fra [https://lovdata.no/lov/1997-02-28-19/§1-1](https://lovdata.no/lov/1997-02-28-19/%C2%A71-1)
